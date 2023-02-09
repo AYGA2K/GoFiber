@@ -4,9 +4,9 @@ import (
 	"log"
 
 	"example.com/api/middleware"
+	"example.com/api/routes"
 
 	"example.com/api/database"
-	"example.com/api/routes"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -31,8 +31,9 @@ func main() {
 	database.ConnectDb()
 
 	app := fiber.New()
+	tokenApp := fiber.New()
 	setupRoutes(app)
 
 	log.Fatal(app.Listen(":3000"))
-
+	log.Fatal(tokenApp.Listen(":4000"))
 }

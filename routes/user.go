@@ -120,18 +120,11 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "Wrong Password"})
 	}
 
-	refresh_token, err := GenerateJWT("refresh", CreateResponseUser(*user), time.Hour*24)
-	// Create cookie
-	cookie := new(fiber.Cookie)
-	cookie.Name = "jwt"
-	cookie.Value = refresh_token
-	cookie.Expires = time.Now().Add(25 * time.Hour)
+	refresh_token, refresh_err := GenerateJWT("refresh", CreateResponseUser(*user), time.Hour*24)
 
-	// Set cookie
-	c.Cookie(cookie)
-	access_token, err := GenerateJWT("access", CreateResponseUser(*user), time.Hour*24)
-	if err == nil {
-		return c.Status(200).JSON(fiber.Map{"token": access_token})
+	access_token, access_err := GenerateJWT("access", CreateResponseUser(*user), time.Minute*15)
+	if refresh_err == nil && access_err == nil {
+		return c.Status(200).JSON(fiber.Map{"access_token": access_token, "refresh_token": refresh_token})
 	}
 	return nil
 }

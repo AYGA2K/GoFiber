@@ -1,13 +1,14 @@
 package database
 
 import (
+	"log"
+	"os"
+
 	"example.com/api/models"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"log"
-	"os"
 )
 
 type DbInstance struct {
@@ -37,7 +38,7 @@ func ConnectDb() {
 
 	log.Println("Running Migrations")
 
-	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.User{}, &models.Token{})
 
 	Database = DbInstance{
 		Db: db,
