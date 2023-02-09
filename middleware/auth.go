@@ -52,39 +52,36 @@ func GenerateJWT(token_type string, user User, expiry time.Duration) (string, er
 	return "", nil
 }
 
-func AuthMiddleware(c *fiber.Ctx) {
+func AuthMiddleware(c *fiber.Ctx) error {
 	// Get the token from the authorization header
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
 		c.Status(401).Send([]byte("Authorization header is empty"))
-		return
+		return nil
 	}
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	godotenv.Load()
 
 	tokenString := authHeader[7:] // Remove "Bearer " from the header
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+
+	secret := os.Getenv("ACCESS_KEY")
+
+	// Parse the token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		refresh := os.Getenv("REFRESH_KEY")
-		return refresh, nil
+
+		return []byte(secret), nil
 	})
+
+	// Check the signing method
 	if err != nil {
-		c.Status(401).Send([]byte("Invalid access token"))
-		return
-	}
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		c.Locals("Id", claims.ID)
-		c.Next()
-		return
-	}
-	refreshTokenString := c.Get("RefreshToken")
-	if refreshTokenString == "" {
-		c.Status(401).Send([]byte("Refresh token is empty"))
-		return
+
+		c.Status(401).Send([]byte(err.Error()))
+	} else if token.Valid {
+
+		return c.Next()
 	}
 
+	return nil
 }

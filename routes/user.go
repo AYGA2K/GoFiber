@@ -10,6 +10,7 @@ import (
 	"example.com/api/database"
 	"example.com/api/models"
 	"github.com/gofiber/fiber/v2"
+
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
@@ -119,10 +120,18 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "Wrong Password"})
 	}
 
-	t, err := GenerateJWT("refresh", CreateResponseUser(*user), time.Hour*24)
+	refresh_token, err := GenerateJWT("refresh", CreateResponseUser(*user), time.Hour*24)
+	// Create cookie
+	cookie := new(fiber.Cookie)
+	cookie.Name = "jwt"
+	cookie.Value = refresh_token
+	cookie.Expires = time.Now().Add(25 * time.Hour)
 
+	// Set cookie
+	c.Cookie(cookie)
+	access_token, err := GenerateJWT("access", CreateResponseUser(*user), time.Hour*24)
 	if err == nil {
-		return c.Status(200).JSON(fiber.Map{"token": t})
+		return c.Status(200).JSON(fiber.Map{"token": access_token})
 	}
 	return nil
 }
