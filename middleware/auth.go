@@ -2,11 +2,10 @@ package middleware
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/joho/godotenv"
+	"os"
 )
 
 type Claims struct {
@@ -19,8 +18,8 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	// Get the token from the authorization header
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
-		c.Status(401).Send([]byte("Authorization header is empty"))
-		return nil
+		return c.Status(401).Send([]byte("Authorization header is empty"))
+
 	}
 	godotenv.Load()
 
@@ -40,7 +39,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	// Check the signing method
 	if err != nil {
 
-		c.Status(401).Send([]byte(err.Error()))
+		return c.Status(401).Send([]byte(err.Error()))
 	} else if token.Valid {
 
 		return c.Next()
