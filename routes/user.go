@@ -160,8 +160,8 @@ func UpdateUser(c *fiber.Ctx) error {
 	}
 
 	err = findUser(id, &user)
-
 	if err != nil {
+
 		return c.Status(400).JSON(err.Error())
 	}
 
