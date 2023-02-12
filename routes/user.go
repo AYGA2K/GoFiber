@@ -75,6 +75,7 @@ func GenerateJWT(token_type string, user User, expiry time.Duration) (string, er
 		"email": user.Email,
 		"exp":   time.Now().Add(expiry).Unix(),
 	})
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -98,6 +99,7 @@ func GenerateJWT(token_type string, user User, expiry time.Duration) (string, er
 	return "", nil
 }
 func Login(c *fiber.Ctx) error {
+
 	var user *models.User
 	// Get the email and password from the request body
 	email := c.FormValue("email")
@@ -110,32 +112,34 @@ func Login(c *fiber.Ctx) error {
 	if user.Email == "" {
 		// if user not found send an 404 status
 		return c.Status(404).JSON("User Not found")
+
 	}
+
 	bcryptErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if bcryptErr != nil {
 
 		return c.Status(401).JSON(fiber.Map{"error": "Wrong Password"})
 	}
 	refresh_token, refresh_err := GenerateJWT("refresh", CreateResponseUser(*user), time.Hour*24)
-	var token *models.Token
+	var token models.Token
+
 	token.Value = refresh_token
 	token.UserID = user.ID
+
 	res := database.Database.Db.Create(&token)
+
 	if res.Error != nil {
 		return c.Status(500).JSON(res.Error.Error())
-
 	} else {
-
 		access_token, access_err := GenerateJWT("access", CreateResponseUser(*user), time.Minute*15)
 		if refresh_err == nil && access_err == nil {
-			return c.Status(200).JSON(fiber.Map{"access_token": access_token, "refresh_token": refresh_token})
+			return c.Status(200).JSON(fiber.Map{"access_token": access_token, "refresh_token": token.Value})
 		}
-		return nil
+		return c.Status(500).JSON(res.Error.Error())
 	}
 }
 func GetUser(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
-
 	var user models.User
 	if err != nil {
 		return c.Status(400).JSON("Please ensure that :id is an integer")
