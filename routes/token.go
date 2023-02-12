@@ -2,10 +2,12 @@ package routes
 
 import (
 	"errors"
+
+	"time"
+
 	"example.com/api/database"
 	"example.com/api/models"
 	"github.com/gofiber/fiber/v2"
-	"time"
 )
 
 type Token struct {
@@ -15,8 +17,8 @@ type Token struct {
 }
 
 func CreateAccessToken(c *fiber.Ctx) error {
-	var token *models.Token
-	var user *models.User
+	var token models.Token
+	var user models.User
 	if err := c.BodyParser(&token); err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
@@ -26,12 +28,16 @@ func CreateAccessToken(c *fiber.Ctx) error {
 		return c.Status(500).JSON(res.Error.Error())
 
 	} else {
-		Usererr := findUser(int(token.UserID), user)
-		if Usererr != nil {
-			access_token, access_err := GenerateJWT("access", CreateResponseUser(*user), time.Minute*15)
+		Usererr := findUser(int(token.UserID), &user)
+
+		if Usererr == nil {
+
+			access_token, access_err := GenerateJWT("access", CreateResponseUser(user), time.Minute*15)
+
 			if access_err == nil {
 				return c.Status(200).JSON(fiber.Map{"access_token": access_token})
 			}
+
 		}
 	}
 	return nil

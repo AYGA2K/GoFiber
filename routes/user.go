@@ -138,6 +138,11 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(500).JSON(res.Error.Error())
 	}
 }
+func LogOut(c *fiber.Ctx) error {
+	// TODO: Delete the refresh token from the database before logging out
+	//DeleteRefreshToken(c)
+	return nil
+}
 func GetUser(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	var user models.User

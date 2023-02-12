@@ -1,11 +1,12 @@
 package main
 
 import (
+	"log"
+
 	"example.com/api/database"
 	"example.com/api/middleware"
 	"example.com/api/routes"
 	"github.com/gofiber/fiber/v2"
-	"log"
 )
 
 func welcome(c *fiber.Ctx) error {
@@ -24,7 +25,7 @@ func setupRoutes(app *fiber.App) {
 	app.Delete("/api/users/:id", routes.DeleteUser)
 
 	//Token  endpoints
-	app.Get("/token", routes.CreateAccessToken)
+	app.Get("/api/token", routes.CreateAccessToken)
 }
 
 func main() {
