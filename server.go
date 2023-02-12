@@ -1,12 +1,11 @@
 package main
 
 import (
-	"log"
-
 	"example.com/api/database"
 	"example.com/api/middleware"
 	"example.com/api/routes"
 	"github.com/gofiber/fiber/v2"
+	"log"
 )
 
 func welcome(c *fiber.Ctx) error {
@@ -29,8 +28,10 @@ func setupRoutes(app *fiber.App) {
 }
 
 func main() {
+
 	database.ConnectDb()
 	app := fiber.New()
 	setupRoutes(app)
 	log.Fatal(app.Listen(":3000"))
+
 }
